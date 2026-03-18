@@ -1,3 +1,4 @@
+import re
 import textwrap
 
 from helpers.utils import (
@@ -23,8 +24,8 @@ def text_to_children(text):
                 hash_count += 1
             else:
                 break
-        tag = f"h{6 if hash_count>6 else hash_count}"
-        children = text_to_textnodes(filtered_text)
+        tag = f"h{hash_count}"
+        children = text_to_textnodes(filtered_text[hash_count+1:])
         html_children = [text_node_to_html_node(child) for child in children]
     elif block_type == BlockType.PARAGRAPH:
         tag = "p"
@@ -36,7 +37,7 @@ def text_to_children(text):
         html_children = [text_node_to_html_node(child) for child in children]
     elif block_type == BlockType.U_LIST or block_type == BlockType.O_LIST:
         tag = "ul" if block_type == BlockType.U_LIST else "ol"
-        html_children = [LeafNode("li", item) for item in filtered_text.split("\n")]
+        html_children = [LeafNode("li", re.sub(r'\d+\.\s', '', item) if block_type == BlockType.O_LIST else item[2:]) for item in text.split("\n")]
     elif block_type == BlockType.CODE:
         tag="pre"
         code_text = textwrap.dedent(text[3:-3]).lstrip("\n")
@@ -56,3 +57,11 @@ def markdown_to_html_node(markdown):
 
     final_node = ParentNode("div", html_nodes)
     return final_node
+
+def extract_title(markdown):
+    lines = markdown.split("\n")
+    for line in lines:
+        if line.startswith("# "):
+            return line[2:].strip()
+        
+    raise Exception("no title found")
