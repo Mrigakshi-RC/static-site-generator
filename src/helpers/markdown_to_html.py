@@ -11,6 +11,7 @@ from helpers.utils import (
 
 from leafnode import LeafNode
 from parentnode import ParentNode
+from textnode import TextNode
 
 
 def text_to_children(text):
@@ -33,11 +34,17 @@ def text_to_children(text):
         html_children = [text_node_to_html_node(child) for child in children]
     elif block_type == BlockType.QUOTE:
         tag = "blockquote"
-        children = text_to_textnodes(filtered_text[1:])
+        children = text_to_textnodes(filtered_text[2:])
         html_children = [text_node_to_html_node(child) for child in children]
     elif block_type == BlockType.U_LIST or block_type == BlockType.O_LIST:
         tag = "ul" if block_type == BlockType.U_LIST else "ol"
-        html_children = [LeafNode("li", re.sub(r'\d+\.\s', '', item) if block_type == BlockType.O_LIST else item[2:]) for item in text.split("\n")]
+        html_children=[]
+        for item in text.split("\n"):
+            item_text=re.sub(r'\d+\.\s', '', item) if block_type == BlockType.O_LIST else item[2:]
+            sub_children=text_to_textnodes(item_text)
+            sub_children_html=[text_node_to_html_node(child) for child in sub_children]
+            child_node=ParentNode("li", sub_children_html)
+            html_children.append(child_node)
     elif block_type == BlockType.CODE:
         tag="pre"
         code_text = textwrap.dedent(text[3:-3]).lstrip("\n")
