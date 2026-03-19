@@ -14,10 +14,7 @@ class LeafNode(HTMLNode):
     def props_to_html_tag(self):
         if not self.props:
             return ""
-        res=""
-        for item,value in self.props.items():
-            res+=f" {item}={value}"
-        return res
+        return "".join([f' {key}="{value}"' for key, value in self.props.items()])
     def props_to_html(self):
         if not self.props:
             return ""
